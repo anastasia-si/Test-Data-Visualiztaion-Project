@@ -1,0 +1,28 @@
+
+  h1 {
+    font-size: 24px;
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  .close-btn {
+    cursor: pointer;
+  }
+  .node circle {
+    fill: #ffffff;
+    stroke: #f5672f;
+    stroke-width: 2px;
+  }
+
+  .node text {
+    font: 14px sans-serif;
+    fill: #5c5c5c;
+  }
+
+  .link {
+    fill: none;
+    stroke: #f1c563;
+    stroke-width: 2px;
+  }
