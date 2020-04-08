@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<head>
+    <link href="{% static 'css/demo.css' %}" rel="stylesheet">
+</head>
+
+<body>
+
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+<script src="{% static 'js/d3.layout.cloud.js' %}"></script>
+
+<div id="charts-accordion">
+
+    <!-- D3 Tree Panel -->
+    <section class="card">
+        <div class="card-header">
+            <a class="card-link" data-toggle="collapse" href="#tree_panel">
+                <i class="fa fa-bar-chart" aria-hidden="true"></i> Collapsible D3 Tree Diagram
+            </a>
+        </div>
+        <div class="collapse show" data-parent="#charts-accordion" id="tree_panel">
+            <div class="card-body">
+                Collapsible D3 Tree Diagram represents hierarchical data structures.<br>
+                Click a node to collapse or expand tree nodes.
+                Hover over a leaf node (end node) to view additional information.
+                <div id="skill_tree_example"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Word Cloud Panel -->
+    <section class="card">
+        <div class="card-header">
+            <a class="card-link" data-toggle="collapse" href="#wc_panel">
+                <i class="fa fa-bar-chart" aria-hidden="true"></i> Basic Word Cloud
+            </a>
+        </div>
+        <div class="collapse show" data-parent="#charts-accordion" id="wc_panel">
+            <div class="card-body">
+                The word cloud is a graphical representation of word frequency.
+                <div id="skill_cloud_example"></div>
+
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Bubble Panel -->
+    <section class="card">
+        <div class="card-header">
+            <a class="card-link" data-toggle="collapse" href="#bubble_panel">
+                <i class="fa fa-bar-chart" aria-hidden="true"></i>Bubble Plot with D3.js
+            </a>
+        </div>
+        <div class="collapse" data-parent="#charts-accordion" id="bubble_panel">
+            <div class="card-body">
+                A bubble chart is an extension of the scatter plot used to look at relationships between
+                three numeric variables. The example bubble chart below is based on a list of books from a
+                <a href="https://www.kaggle.com/jealousleopard/goodreadsbooks" target="_blank">public dataset</a>.
+                The location of the bubble is determined by the first two dimensions (Publication date and Book rating).
+                The sizes of the bubbles are determined by the values in the third data series (Number of pages).
+                The primary language of the book is represented through the colors of the bubbles.<br>
+                Hover over a bubble to see additional information.<br>
+                Click a language in the legend to filter books.
+                <div id="bubble_example">
+                    <div class="bubble-tooltip-container"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Google Panel -->
+    <section class="card">
+        <div class="card-header">
+            <a class="card-link" data-toggle="collapse" href="#google_panel">
+                <i class="fa fa-bar-chart" aria-hidden="true"></i> Google Data Studio widgets
+            </a>
+        </div>
+        <div class="collapse" data-parent="#charts-accordion" id="google_panel">
+            <div class="card-body">
+                Data visualization using Google Data Studio and
+                <a href="https://datastudio.google.com/u/0/datasources/cda8ed00-4a50-45ee-8fe7-e77e9ca35dd9"
+                   target="_blank">public dataset</a>
+                about the number of Novel Coronavirus (2019-nCoV) cases reported from various countries
+                <iframe allowfullscreen="" frameborder="0" height="600"
+                        src="https://datastudio.google.com/embed/reporting/ccd9ded1-f6e7-4ee3-9037-ad7f42449472/page/d4zDB"
+                        style="border:0" width="100%">
+                </iframe>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+
+<script src="{% static 'js/tree.js' %}"></script>
+<script src="{% static 'js/wordcloud.js' %}"></script>
+<script src="{% static 'js/bubble.js' %}"></script>
+<script>
+
+/**
+ *  Collapsible Tree Example
+ **/
+
+const treeDivId = "#skill_tree_example";
+const treeFilePath = "{% static 'demo_data/skills_tree_example.json' %}"
+const chartContainerWidth = $(treeDivId).width();
+const chartContainerHeight = 500;
+var margin = {top: 20, right: 90, bottom: 30, left: 100},
+width = chartContainerWidth - margin.left - margin.right,
+height = chartContainerHeight - margin.top - margin.bottom;
+
+var tree_svg = d3.select(treeDivId).append("svg")
+  .attr("width", width + margin.right + margin.left)
+  .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+  .attr("transform", "translate("
+        + margin.left + "," + margin.top + ")");
+
+var node_id = 0,
+    duration = 500;
+
+var treemap = d3.tree().size([height, width]);
+
+d3.json(treeFilePath, function(error, skillsData) {
+ root = treemap(stratify(skillsData));
+ root.x0 = height / 2;
+ root.y0 = 0;
+
+ update(root);
+});
+
+      
+/**
+*  Word Cloud Example
+**/
+
+const wcDivId = "#skill_cloud_example";
+const wcFilePath = "{% static 'demo_data/skills_cloud_example.csv' %}"
+var margin = {top: 30, right: 50, bottom: 30, left: 50};
+width = chartContainerWidth - margin.left - margin.right,
+height = chartContainerHeight - margin.top - margin.bottom;
+
+var wc_svg = d3.select(wcDivId)
+  .append("svg")
+  .attr("width", width + margin.left + margin.right)
+  .attr("height", height + margin.top + margin.bottom)
+
+var g = wc_svg.append("g")
+  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+d3.csv(wcFilePath, buildWordCloud);
+
+
+/*
+** Bubble Chart Example
+*/
+
+const bubbleDivId = "#bubble_example";
+const bubbleTooltipDiv = ".bubble-tooltip-container";
+const bubbleFilePath = "{% static 'demo_data/books.csv' %}"
+var margin = {top: 20, right: 90, bottom: 30, left: 100},
+width = chartContainerWidth - margin.left - margin.right,
+height = chartContainerHeight - margin.top - margin.bottom;
+
+const languages = {"eng": "English", "en-CA": "English - Canada", "en-GB": "English - GB", "en-US": "English - US", "fre": "French", "ger": "German", "grc": "Greek", "spa": "Spanish"};
+const lang_codes = Object.keys(languages);
+
+// Tooltip div is hidden by default:
+var tooltip = d3.select(bubbleTooltipDiv)
+    .append("div")
+    .style("opacity", 0)
+    .attr("class", "bubble-tooltip")
+
+var bubble_svg = d3.select(bubbleDivId)
+    .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform",
+         "translate(" + margin.left + "," + margin.top + ")");
+
+d3.csv(bubbleFilePath, buildBubble)
+
+
+</script>
+</body>
+</html>
